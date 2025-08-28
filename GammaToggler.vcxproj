@@ -136,11 +136,10 @@
     <ClCompile Include="GammaToggler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="GammaToggler.rc" />
+    <ResourceCompile Include="GammaToggler.rc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ResourceCompile>
     <ResourceCompile Include="GammaTogglerResource.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="GammaToggler.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

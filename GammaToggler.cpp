@@ -336,6 +336,7 @@ void SetScreenGamma(float gamma) {
         WORD finalValue = (WORD)min(65535, max(0, correctedValue));
         ramp[i] = ramp[i + 256] = ramp[i + 512] = finalValue;
     }
+
     SetDeviceGammaRamp(hdc, ramp);
     ReleaseDC(NULL, hdc);
 }
