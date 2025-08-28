@@ -21,9 +21,9 @@ HINSTANCE g_hInstance = NULL;
 // Default values
 const int DEFAULT_GAMMA_INT = 280; // Stored as 2.80 * 100
 const int DEFAULT_MODIFIER_INT = MOD_NOREPEAT;
-const int DEFAULT_KEY_INT = VK_F10; // VK_F10 is 0x79 or 121
+const int DEFAULT_KEY_INT = VK_F10;
 
-// Configurable values (these will hold the active state)
+// Global values for modifiable states
 float g_targetGamma = 0.0f;
 UINT g_hotkeyModifier = 0;
 UINT g_hotkeyKey = 0;
@@ -64,23 +64,24 @@ int WINAPI WinMain(
     _In_ LPSTR lpCmdLine,
     _In_ int nCmdShow)
 {
-    const TCHAR* mutexName = TEXT("Global\\{E1D8A5E0-2A6B-4B3B-8E4A-6B4B3B8E4A6B}"); // Example GUID
+    const TCHAR* mutexName = TEXT("Global\\GammaToggler");
 
     HANDLE hMutex = CreateMutex(NULL, TRUE, mutexName);
 
     if (hMutex == NULL) {
         // This is a serious error, but unlikely.
-        MessageBox(NULL, TEXT("Could not create mutex."), TEXT("Error"), MB_OK | MB_ICONERROR);
+        MessageBox(NULL, TEXT("Could not create mutex."), TEXT("Gamma Toggler Error"), MB_OK | MB_ICONERROR);
         return 1;
     }
 
     // Check if the mutex already existed.
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
         MessageBox(NULL, TEXT("Application already running."), TEXT("Gamma Toggler Error"), MB_OK | MB_ICONERROR);
-        // Another instance is already running. Close this new instance.
-        CloseHandle(hMutex); // Clean up the handle we just received.
+        
+        // Another instance is already running. Close this new instance
+        CloseHandle(hMutex); // Clean up the handle we just received
 
-        return 0; // Exit successfully.
+        return 0;
     }
 
 
@@ -108,7 +109,7 @@ int WINAPI WinMain(
     if (g_hWindow == NULL) return 1;
 
     if (!RegisterNewHotkey()) {
-        MessageBox(NULL, TEXT("Failed to register hotkey. It might be in use."), TEXT("Error"), MB_OK | MB_ICONERROR);
+        MessageBox(NULL, TEXT("Failed to register hotkey. It might be in use. Exiting application."), TEXT("Gamma Toggler Error"), MB_OK | MB_ICONERROR);
         return 1;
     }
 
@@ -161,7 +162,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             }
             else {
                 // Handle failure if needed
-                MessageBox(hwnd, TEXT("Could not re-register hotkey."), TEXT("Warning"), MB_OK);
+                MessageBox(hwnd, TEXT("Could not re-register hotkey."), TEXT("Gamma Toggler Warning"), MB_OK);
             }
             break;
         }
@@ -199,21 +200,19 @@ std::wstring GetHotkeyString(UINT modifiers, UINT vk) {
         hotkeyStr += L"Win + ";
     }
 
-    // --- THE FIX IS HERE: Get the scan code and build a proper lParam ---
-
-    // For simple alphanumeric keys, we can just append the character. This is reliable.
+    // For simple alphanumeric keys, we can just append the character
     if ((vk >= 'A' && vk <= 'Z') || (vk >= '0' && vk <= '9')) {
         hotkeyStr += (TCHAR)vk;
     }
-    // For all other keys (F-keys, navigation, etc.), we must use the API correctly.
+    // For all other keys (F-keys, navigation, etc.), we must use the API correctly
     else {
-        // 1. Get the scan code for the virtual key.
+        // 1. Get the scan code for the virtual key
         UINT scanCode = MapVirtualKey(vk, MAPVK_VK_TO_VSC);
 
-        // 2. Build the lParam with both the scan code and the virtual key code.
+        // 2. Build the lParam with both the scan code and the virtual key code
         LONG lparam = (scanCode << 16);
 
-        // For F-keys and other special keys, we may need to set the "extended key" flag.
+        // For F-keys and other special keys, we may need to set the "extended key" flag
         switch (vk) {
         case VK_INSERT:
         case VK_DELETE:
@@ -230,7 +229,7 @@ std::wstring GetHotkeyString(UINT modifiers, UINT vk) {
         }
 
         TCHAR keyName[50] = { 0 };
-        // 3. Call GetKeyNameText with the complete lParam.
+        // 3. Call GetKeyNameText with the complete lParam
         if (GetKeyNameText(lparam, keyName, sizeof(keyName) / sizeof(TCHAR))) {
             hotkeyStr += keyName;
         }
@@ -238,7 +237,6 @@ std::wstring GetHotkeyString(UINT modifiers, UINT vk) {
             hotkeyStr += L"?"; // Fallback if it still fails
         }
     }
-    // --- END FIX ---
 
     return hotkeyStr;
 }
@@ -260,7 +258,6 @@ void CenterWindow(HWND hDlg) {
 }
 
 // --- Dialog Procedures ---
-
 INT_PTR CALLBACK GammaDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_INITDIALOG: {
@@ -277,7 +274,7 @@ INT_PTR CALLBACK GammaDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
             GetDlgItemText(hDlg, IDC_GAMMA_EDIT, buffer, 32);
             float newGamma = _tstof(buffer);
 
-            // Validation: Ensure gamma is within a reasonable, non-zero range.
+            // Validation: Ensure gamma is within a reasonable, non-zero range
             if (newGamma >= 0.1f && newGamma <= 10.0f) {
                 g_targetGamma = newGamma;
                 SaveConfig();
@@ -285,7 +282,7 @@ INT_PTR CALLBACK GammaDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                 EndDialog(hDlg, IDOK);
             }
             else {
-                MessageBox(hDlg, TEXT("Invalid gamma value. Please enter a number between 0.1 and 10.0."), TEXT("Error"), MB_OK | MB_ICONEXCLAMATION);
+                MessageBox(hDlg, TEXT("Invalid gamma value. Please enter a number between 0.1 and 10.0."), TEXT("Gamma Toggler Error"), MB_OK | MB_ICONEXCLAMATION);
             }
             return (INT_PTR)TRUE;
         }
@@ -298,7 +295,6 @@ INT_PTR CALLBACK GammaDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
     return (INT_PTR)FALSE;
 }
 
-// --- Corrected HotkeyDialogProc ---
 INT_PTR CALLBACK HotkeyDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_INITDIALOG: {
@@ -325,9 +321,7 @@ INT_PTR CALLBACK HotkeyDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
                 g_hotkeyModifier = 0;
             }
             else {
-                // --- THE FIX IS HERE: Explicitly initialize to 0 ---
-                UINT newModifiers = 0; // This guarantees a clean start in all build modes.
-                // --- END FIX ---
+                UINT newModifiers = 0; // This guarantees a clean start in all build modes
 
                 if (modifiersFromDialog & HOTKEYF_CONTROL) newModifiers |= MOD_CONTROL;
                 if (modifiersFromDialog & HOTKEYF_ALT)     newModifiers |= MOD_ALT;
@@ -351,12 +345,7 @@ INT_PTR CALLBACK HotkeyDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     return (INT_PTR)FALSE;
 }
 
-
-
-
-
 // --- Core & Helper Functions ---
-
 void ToggleGamma() {
     g_isGammaCustom = !g_isGammaCustom;
     SetScreenGamma(g_isGammaCustom ? g_targetGamma : 1.0f);
