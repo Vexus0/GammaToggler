@@ -137,6 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GammaToggler.rc" />
+    <ResourceCompile Include="GammaTogglerResource.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="GammaToggler.ico" />
