@@ -27,6 +27,8 @@ const int DEFAULT_KEY_INT = VK_F10;
 float g_targetGamma = 0.0f;
 UINT g_hotkeyModifier = 0;
 UINT g_hotkeyKey = 0;
+float g_minGamma = 0.23f;
+float g_maxGamma = 4.45f;
 
 HWND g_hWindow = NULL;
 NOTIFYICONDATA g_notifyIconData;
@@ -249,14 +251,14 @@ INT_PTR CALLBACK GammaDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
             float newGamma = _tstof(buffer);
 
             // Validation: Ensure gamma is within a reasonable, non-zero range
-            if (newGamma >= 0.1f && newGamma <= 10.0f) {
+            if (newGamma >= g_minGamma && newGamma <= g_maxGamma) {
                 g_targetGamma = newGamma;
                 SaveConfig();
                 UpdateTrayIconTip();
                 EndDialog(hDlg, IDOK);
             }
             else {
-                MessageBox(hDlg, TEXT("Invalid gamma value. Please enter a number between 0.1 and 10.0."), TEXT("Gamma Toggler Error"), MB_OK | MB_ICONEXCLAMATION);
+                MessageBox(hDlg, TEXT("Invalid gamma value. Please enter a number between 0.23 and 4.45."), TEXT("Gamma Toggler Error"), MB_OK | MB_ICONEXCLAMATION);
             }
             return (INT_PTR)TRUE;
         }
@@ -409,7 +411,7 @@ void LoadConfig() {
     g_hotkeyKey = (UINT)loadedKey;
 
     // Add validation for the loaded gamma value
-    if (g_targetGamma < 0.1f || g_targetGamma > 10.0f) {
+    if (g_targetGamma < g_minGamma || g_targetGamma > g_maxGamma) {
         g_targetGamma = DEFAULT_GAMMA_INT / 100.0f;
     }
 }
