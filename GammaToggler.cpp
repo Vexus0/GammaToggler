@@ -5,11 +5,11 @@
 #include <cmath>
 #include <tchar.h>
 #include <string>
-#include <commctrl.h> // For the Hotkey control
+#include <commctrl.h> // For the hotkey control
 
 #include "GammaToggler.h"
 
-// --- Global Variables & Constants ---
+// Global Variables & Constants
 #define WM_TRAYICON (WM_USER + 1)
 #define ID_TRAY_EXIT 1001
 #define ID_TRAY_SET_GAMMA 1002
@@ -33,31 +33,7 @@ NOTIFYICONDATA g_notifyIconData;
 bool g_isGammaCustom = false;
 TCHAR g_configPath[MAX_PATH];
 
-// --- Function Prototypes ---
-// System Tray and UI Functions
-void CreateTrayIcon(HWND hwnd);
-void RemoveTrayIcon();
-void ShowContextMenu(HWND hwnd);
-void UpdateTrayIconTip();
-void CenterWindow(HWND hDlg);
-
-// Core Application Logic
-void ToggleGamma();
-void SetScreenGamma(float gamma);
-std::wstring GetHotkeyString(UINT modifiers, UINT vk);
-bool RegisterNewHotkey();
-
-// Configuration Load/Save
-void LoadConfig();
-void SaveConfig();
-
-// Window and Dialog Procedures (Message Handlers)
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-INT_PTR CALLBACK GammaDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-INT_PTR CALLBACK HotkeyDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-// --- End Function Prototypes ---
-
-// --- Entry Point ---
+// Entry Point
 int WINAPI WinMain(
     _In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
@@ -125,7 +101,7 @@ int WINAPI WinMain(
     return 0;
 }
 
-// --- Main Window Procedure ---
+// Main Window Procedure
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_HOTKEY:
@@ -161,7 +137,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 UpdateTrayIconTip();
             }
             else {
-                // Handle failure if needed
                 MessageBox(hwnd, TEXT("Could not re-register hotkey."), TEXT("Gamma Toggler Warning"), MB_OK);
             }
             break;
@@ -257,7 +232,6 @@ void CenterWindow(HWND hDlg) {
     SetWindowPos(hDlg, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 }
 
-// --- Dialog Procedures ---
 INT_PTR CALLBACK GammaDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_INITDIALOG: {
@@ -327,7 +301,7 @@ INT_PTR CALLBACK HotkeyDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
                 if (modifiersFromDialog & HOTKEYF_ALT)     newModifiers |= MOD_ALT;
                 if (modifiersFromDialog & HOTKEYF_SHIFT)   newModifiers |= MOD_SHIFT;
 
-                // We also need to add back the MOD_NOREPEAT flag
+                // Add back the MOD_NOREPEAT flag
                 g_hotkeyModifier = newModifiers | MOD_NOREPEAT;
                 g_hotkeyKey = keyFromDialog;
             }
@@ -345,7 +319,6 @@ INT_PTR CALLBACK HotkeyDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     return (INT_PTR)FALSE;
 }
 
-// --- Core & Helper Functions ---
 void ToggleGamma() {
     g_isGammaCustom = !g_isGammaCustom;
     SetScreenGamma(g_isGammaCustom ? g_targetGamma : 1.0f);
